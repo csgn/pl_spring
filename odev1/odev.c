@@ -9,7 +9,7 @@ Sergen Cepoglu
 #include <string.h>
 #include <limits.h>
 
-#define SIZE INT_MAX
+#define SIZE 10000
 
 int parseInt(char n) {
 	return n - '0';
@@ -53,19 +53,26 @@ void Show(char *fn, char* sn, char* res) {
 }
 
 char* Addition(char* fn, char* sn) {
-	int c = 0, r = 0;
+	int s = 0, c = 0;
 	int i = strlen(fn)-1, j = strlen(sn)-1, k = 0;
 	int fni, sni;
 	char* res = (char*) malloc(sizeof(char)*SIZE);
-
-	while (i >= 0 || j >= 0 ) {
+	
+	while (i >= 0 || j >= 0) {
 		sni = j < 0 ? 0 : parseInt(sn[j--]);
 		fni = i < 0 ? 0 : parseInt(fn[i--]);
-		c = fni + sni + r;
-		r = c / 10;
-		res[k++] = parseChar(c%10);
+		s = fni + sni + c;
+		c = s / 10;
+		res[k++] = parseChar(s%10);
 	}
-
+	
+	
+	while (c > 0) {
+		res[k++] = parseChar(c % 10);
+		c /= 10;
+	}
+	
+	
 	Reverse(res);
 	return res;
 }
@@ -114,7 +121,69 @@ char* Extraction(char* fn, char* sn) {
 }
 
 char* Multiplication(char* fn, char* sn) {
+	int lenFn = strlen(fn);
+	int lenSn = strlen(sn);
+	
+	int fni = lenFn-1;
+	int sni = lenSn-1;
+	int rsi = 0;
+	
+	char* result = (char*) malloc(sizeof(char)*SIZE);
+	char* tmp = (char*) malloc(sizeof(char)*SIZE);
+	
+	memset(result, NULL, sizeof(char)*SIZE);
+	
+	if (lenFn == 0 || lenSn == 0) {
+		result[rsi] = '0';
+		return result;
+	}
+	
+	while (sni >= 0) {
+		rsi = 0;
+		memset(tmp, NULL, sizeof(char)*SIZE);
+		
+		int snel = parseInt(sn[sni]);
+		int carry = 0;
+		int sum = 0;
+		
+		fni = lenFn - 1;
+		
+		while (fni >= 0) {
+			int fnel = parseInt(fn[fni--]);
+			
+			sum = fnel*snel + carry;
+			
+			if (sum >= 10) {
+				carry = sum/10;
+			} else {
+				carry = 0;
+			}
+			
+			tmp[rsi++] = parseChar(sum % 10);
+		}
 
+		while (carry > 0) {
+			tmp[rsi++] = parseChar(carry % 10);
+			carry /= 10;
+		}
+		
+		Reverse(tmp);
+		if (strlen(result) != 0) {
+			int i = (lenSn-1)-sni;
+			while (i > 0) {
+				tmp[rsi++] = parseChar(0);
+				i--;
+			}
+			
+			result = Addition(result, tmp);
+		} else {
+			memcpy(result, tmp, sizeof(char)*SIZE);
+		}
+		
+		sni--;
+	}
+	
+	return result;
 }
 
 
@@ -128,9 +197,11 @@ int main() {
 
 	scanf("%s%s", fn, sn);
 
-	res = Extraction(fn, sn);
-
-	Show(fn, sn, res);
+	res = Multiplication(fn, sn);
+	//res = Addition(fn, sn);
+	
+	printf("res=%s\n", res);
+	//Show(fn, sn, res);
 
 	return 0;
 }
