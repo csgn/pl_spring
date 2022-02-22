@@ -7,7 +7,6 @@ Sergen Cepoglu
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #define SIZE 10000
 
@@ -36,20 +35,26 @@ void Show(char *fn, char* sn, char* res) {
 	snl = strlen(sn);
 	resl = strlen(res);
 
+	x = (resl - fnl)*2;
+	while (x-- > 0)
+		printf(" ");
+
 	for (i = 0; i < fnl; i++)
-		printf("%c", fn[i]);
+		printf("%c ", fn[i]);
 	printf("\n");
 
-	x = (fnl - snl)*2;
+	x = (resl - snl)*2;
 	while (x-- > 0)
 		printf(" ");
 
 	for (i = 0; i < snl; i++)
-		printf("%c", sn[i]);
+		printf("%c ", sn[i]);
 
 	printf("\n");
 	for (i = 0; i < resl; i++)
-		printf("%c", res[i]);
+		printf("%c ", res[i]);
+
+    printf("\n");
 }
 
 char* Addition(char* fn, char* sn) {
@@ -115,7 +120,8 @@ char* Extraction(char* fn, char* sn) {
 		j--;
 		k++;
 	}
-
+    
+    free(cpyfn);
 	Reverse(res);
 	return res;
 }
@@ -131,7 +137,7 @@ char* Multiplication(char* fn, char* sn) {
 	char* result = (char*) malloc(sizeof(char)*SIZE);
 	char* tmp = (char*) malloc(sizeof(char)*SIZE);
 	
-	memset(result, NULL, sizeof(char)*SIZE);
+	memset(result, 0, sizeof(char)*SIZE);
 	
 	if (lenFn == 0 || lenSn == 0) {
 		result[rsi] = '0';
@@ -140,7 +146,7 @@ char* Multiplication(char* fn, char* sn) {
 	
 	while (sni >= 0) {
 		rsi = 0;
-		memset(tmp, NULL, sizeof(char)*SIZE);
+		memset(tmp, 0, sizeof(char)*SIZE);
 		
 		int snel = parseInt(sn[sni]);
 		int carry = 0;
@@ -182,26 +188,61 @@ char* Multiplication(char* fn, char* sn) {
 		
 		sni--;
 	}
-	
+	    
+    free(tmp);
 	return result;
 }
 
-
-
-
 int main() {
-	int fns, sns;
-	char* fn = (char*) malloc(sizeof(char)*SIZE);
-	char* sn = (char*) malloc(sizeof(char)*SIZE);
-	char* res = (char*) malloc(sizeof(char)*SIZE);
+    int choice;
 
-	scanf("%s%s", fn, sn);
+	char* fn;
+	char* sn;
+	char* res;
 
-	res = Multiplication(fn, sn);
-	//res = Addition(fn, sn);
-	
-	printf("res=%s\n", res);
-	//Show(fn, sn, res);
+    char *in1 = (char*) malloc(sizeof(char)*SIZE);
+    char *in2 = (char*) malloc(sizeof(char)*SIZE);
 
-	return 0;
+    while (1) {
+        printf("\nSayi 1: ");
+	    scanf("%s", in1);
+
+        printf("Sayi 2: ");
+	    scanf("%s", in2);
+
+        if (strlen(in1) >= strlen(in2)) {
+            fn = in1;
+            sn = in2;
+        } else {
+            fn = in2;
+            sn = in1;
+        }
+
+        printf("1. Topla\n2. Cikar\n3. Carp\nBir islem seciniz: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+        case 1:
+            res = Addition(fn, sn);
+            break;
+        case 2:
+            res = Extraction(fn ,sn);
+            break;
+        case 3:
+            res = Multiplication(fn ,sn);
+            break;
+        default:
+            printf("Try again\n");
+            continue;
+        }
+
+        Show(fn, sn, res);
+
+        memset(in1, 0, sizeof(char)*SIZE);
+        memset(in2, 0, sizeof(char)*SIZE);
+        memset(res, 0, sizeof(char)*SIZE);
+    }
+
+
+    return 0;
 }
