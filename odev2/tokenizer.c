@@ -82,7 +82,8 @@ void reverse(char *string_)
    char *m_reversed_string = (char*)malloc(sizeof(string_) + 1);
 
    size_t i = 0;
-   for (int m_i = strlen(string_) - 1; m_i >= 0; m_i--)
+   int m_i;
+   for (m_i = strlen(string_) - 1; m_i >= 0; m_i--)
       m_reversed_string[i++] = string_[m_i];
 
    memcpy(string_, m_reversed_string, strlen(m_reversed_string) + 1);
@@ -309,7 +310,8 @@ TOKEN get_string_token_type(char *lexeme_)
       return NEWLINE;
 
    int type_counter = 0;
-   for (int i = 0; i < length(lexeme_); i++)
+   int i;
+   for (i = 0; i < length(lexeme_); i++)
    {
       if (isdigit(lexeme_[i]))
          type_counter++;
@@ -326,7 +328,9 @@ TOKEN get_string_token_type(char *lexeme_)
 
 int lexeme(char *string_, char **lexemes_)
 {
-   char *m_lexeme = (char *)malloc(0x100 * sizeof(char));
+   char *m_lexeme = (char *)malloc(sizeof(char)+1);
+   memset(m_lexeme, 0, sizeof(char));
+   
    char m_current_char;
 
    TOKEN m_token_type;
@@ -479,7 +483,7 @@ int lexeme(char *string_, char **lexemes_)
 
 int main(int argc, char **argv)
 {
-   char *m_file_path = (char*)malloc(sizeof(char) + 1);
+   char *m_file_path = (char*)malloc(256*sizeof(char));
 
    if (argc > 1)
       m_file_path = argv[1];
@@ -499,17 +503,23 @@ int main(int argc, char **argv)
 
    FILE *m_stream = open(m_file_path, "r");
    char *m_source = read(m_stream);
-
+   
+   printf("%d\n", length(m_source));
    char **m_lexemes = (char**) malloc(sizeof(char *) * length(m_source));
-   for (int i = 0; i < length(m_source); i++)
-      m_lexemes[i] = (char*) calloc(0x100, sizeof(char));
-
+   
+   
+   int i;
+   for (i = 0; i < length(m_source); i++)
+      m_lexemes[i] = (char*) calloc(256, sizeof(char));
+	
    int size;
    size = lexeme(m_source, m_lexemes);
+   printf("%d\n", size);
 
-   printf("%s", m_source);
-
-   for (int i = 0; i < size; i++)
+	
+   printf("%s\n", m_source);
+	
+   for (i = 0; i < size; i++)
    {
       printf("%s", m_lexemes[i]);
 
@@ -519,4 +529,5 @@ int main(int argc, char **argv)
    }
 
    return 0;
+   
 }

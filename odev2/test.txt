@@ -1,0 +1,99 @@
+int main() {
+	for (i=0; i<n; i++) {
+		y=7+20*xa;
+		if (y >= 20)
+			y = 0;
+	}
+	while(i < 100) {
+		helloworld=10+20+30*xabcd-2356;
+		helloworld++;
+		helloworld--;
+		helloworld += 2000*10;
+	}
+	
+	printf("%d", helloworld);
+	scanf("%s", asdas);
+	scanf("%d", &abc);
+
+
+	while(i <= 10000000 * abcasdasd) {
+		d=10+20+30*xabcd-2356;
+		d++;
+		d--;
+		d -= abc*1230;
+		d += 2000*10;
+	}
+	for (i=0; i<n; i++) {
+		y=7+20*xa;
+		if (y >= 20)
+			y = 0;
+	}
+	while(i < 100) {
+		helloworld=10+20+30*xabcd-2356;
+		helloworld++;
+		helloworld--;
+		helloworld += 2000*10;
+	}
+	
+	printf("%d", helloworld);
+	scanf("%s", asdas);
+	scanf("%d", &abc);
+
+
+	while(i <= 10000000 * abcasdasd) {
+		d=10+20+30*xabcd-2356;
+		d++;
+		d--;
+		d -= abc*1230;
+		d += 2000*10;
+	}
+	for (i=0; i<n; i++) {
+		y=7+20*xa;
+		if (y >= 20)
+			y = 0;
+	}
+	while(i < 100) {
+		helloworld=10+20+30*xabcd-2356;
+		helloworld++;
+		helloworld--;
+		helloworld += 2000*10;
+	}
+	
+	printf("%d", helloworld);
+	scanf("%s", asdas);
+	scanf("%d", &abc);
+
+
+	while(i <= 10000000 * abcasdasd) {
+		d=10+20+30*xabcd-2356;
+		d++;
+		d--;
+		d -= abc*1230;
+		d += 2000*10;
+	}
+	for (i=0; i<n; i++) {
+		y=7+20*xa;
+		if (y >= 20)
+			y = 0;
+	}
+	while(i < 100) {
+		helloworld=10+20+30*xabcd-2356;
+		helloworld++;
+		helloworld--;
+		helloworld += 2000*10;
+	}
+	
+	printf("%d", helloworld);
+	scanf("%s", asdas);
+	scanf("%d", &abc);
+
+
+	while(i <= 10000000 * abcasdasd) {
+		d=10+20+30*xabcd-2356;
+		d++;
+		d--;
+		d -= abc*1230;
+		d += 2000*10;
+	}	
+	return 0;
+}
