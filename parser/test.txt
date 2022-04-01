@@ -1,7 +1,9 @@
-if (A <= B) {
+if (A < B) {
+    A = B
+} elseif (A > 5) {
     C = D
-
-    if (A==BAD) {
-        AD123=123
-    }
+} elseif (C < 2) {
+    D = 2
+} else {
+    D = 2
 }

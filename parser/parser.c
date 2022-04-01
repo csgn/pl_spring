@@ -48,6 +48,8 @@
 #define SPACE        40
 #define NEWLINE      42
 #define IFEXPR       44
+#define ELSEIFEXPR   46
+#define ELSEEXPR     48
 
 
 typedef struct token {
@@ -114,6 +116,10 @@ int GetTokenType(char *chr)
       return EQEQUAL;
    if (strcmp(chr, "if") == 0)
       return IFEXPR;
+   if (strcmp(chr, "elseif") == 0)
+      return ELSEIFEXPR;
+   if (strcmp(chr, "else") == 0)
+      return ELSEEXPR;
 
    if (strlen(chr) == 1) {
       return GetType(chr[0]);
@@ -186,6 +192,10 @@ char* GetTokenTypeName(int token_type)
       return "NEWLINE";
    case IFEXPR:
       return "IFEXPR";
+   case ELSEIFEXPR:
+      return "ELSEIFEXPR";
+   case ELSEEXPR:
+      return "ELSEEXPR";
    }
 
    return "NONE";
@@ -198,7 +208,6 @@ void NextToken(char *text, char *buffer, int *iter, char *current_char, int *cur
 
    *current_char = buffer[*iter];
    *current_type = GetType(*current_char);
-   //printf("%c\t%d\t%d\n", *current_char, *current_type, *iter);
    (*end_colno_offset)++;
    (*iter)++;
 }
@@ -262,9 +271,14 @@ TOKEN* StartTokenize(char *buffer, int size)
          lineno++;
          begin_colno_offset = 1; end_colno_offset = 0;
          NextToken(text, buffer, &iter, &current_char, &current_type, &begin_colno_offset, &end_colno_offset);
-         break;
+         memset(text, 0, sizeof(text)+1);
+         continue;
       case NONE:
          return NULL;
+      case SPACE:
+         NextToken(text, buffer, &iter, &current_char, &current_type, &begin_colno_offset, &end_colno_offset);
+         memset(text, 0, sizeof(text)+1);
+         continue;
       default:
          NextToken(text, buffer, &iter, &current_char, &current_type, &begin_colno_offset, &end_colno_offset);
          break;
@@ -276,17 +290,260 @@ TOKEN* StartTokenize(char *buffer, int size)
       begin_colno_offset = end_colno_offset;
    }
 
+   token_iter = NULL;
+   free(token_iter);
    return token_root;
 }
 
-void StartParser(TOKEN *token)
+void SyntaxError(TOKEN** t, char *msg) 
 {
+   printf("%s <%d:%d>\n", msg, (*t)->lineno, (*t)->begin_colno_offset, (*t)->end_colno_offset);
+}
 
+void VerboseError(TOKEN* t, char *buffer)
+{
+   int i = 0;
+   int lineno = 1;
+   while (lineno < t->lineno) {
+      if (buffer[i] == '\n')
+         lineno++;
+      printf("%c", buffer[i]);
+      i++;
+   }
+
+   int j = i;
+   while (buffer[j] != '\n') {
+      printf("%c", buffer[j]);
+      j++;
+   } 
+
+   printf("\n");
+
+   int col = 0;
+   while (col <= t->end_colno_offset) {
+      printf("^");
+      col++;
+   }
+
+   printf("\n");
+}
+
+/*
+  <digit> :  0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+*/
+int DIGIT_EXPR(TOKEN *t) {
+   if (t->type != NUMBER)
+      return 0;
+
+   for (int i = 0; i < strlen(t->text); i++) {
+      if (t->text[i] < 48 && t->text[i] > 57)
+         return 0;
+   }
+
+   return 1;
+}
+
+/*
+   <number> : <digit> | <digit> <number>
+*/
+int NUMBER_EXPR(TOKEN *t) {
+   return DIGIT_EXPR(t);
+}
+
+int ID_EXPR(TOKEN *t) {
+   if (t->type == IDENTIFIER)
+      return 1;
+   
+   if (!NUMBER_EXPR(t)) return 0;
+
+   return 1;
+}
+
+int WORD_EXPR(TOKEN **t) {
+   if (ID_EXPR(*t)) {
+      *t = (*t)->next;
+   } else {
+      SyntaxError(t, "unrecognized identifier at ");
+      return 0;
+   }
+
+   if ((*t)->type == EQUAL) {
+      *t = (*t)->next;
+   } else {
+      SyntaxError(t, "'=' is missing at ");
+      return 0;
+   }
+
+   if (ID_EXPR(*t)) {
+      *t = (*t)->next;
+
+      switch ((*t)->type) {
+      case PLUS:
+      case MINUS:
+      case STAR:
+      case SLASH:
+         if (ID_EXPR(*t)) {
+            *t = (*t)->next;
+         } else {
+            SyntaxError(t, "unrecognized identifier at ");
+            return 0;
+         }
+      }
+   } else {
+      SyntaxError(t, "unrecognized identifier at ");
+      return 0;
+   }
+
+   return 1;
+}
+
+int OP_EXPR(TOKEN *t) {
+   if (t->type != GREATER
+   && t->type != LESS
+   && t->type != GREATEREQUAL
+   && t->type != LESSEQUAL
+   && t->type != EQEQUAL) return 0;
+
+   return 1;
+}
+
+int COND_EXPR(TOKEN **t) {
+   if (ID_EXPR(*t)) {
+      *t = (*t)->next;
+   } else {
+      SyntaxError(t, "unrecognized identifier at ");
+      return 0;
+   }
+
+   if (OP_EXPR(*t)) {
+      *t = (*t)->next;
+   } else {
+      SyntaxError(t, "unrecognized operator at ");
+      return 0;
+   }
+
+   if (ID_EXPR(*t)) {
+      *t = (*t)->next;
+   } else {
+      SyntaxError(t, "unrecognized identifier at ");
+      return 0;
+   }
+
+   return 1;
+}
+
+int BLOCK(TOKEN **t) {
+   if ((*t)->type == LBRACE) {
+      *t = (*t)->next;
+   } else {
+      SyntaxError(t, "'{' is missing at ");
+      return 0;
+   }
+
+   if (!WORD_EXPR(t)) return 0;
+
+   if ((*t)->type == RBRACE) {
+      *t = (*t)->next;
+   } else {
+      SyntaxError(t, "'}' is missing at ");
+      return 0;
+   }
+
+   return 1;
+}
+
+int ELSEIF_EXPR(TOKEN **t) {
+   if ((*t)->type == ELSEIFEXPR) {
+      *t = (*t)->next;
+
+      if ((*t)->type == LPAR) {
+         *t = (*t)->next;
+      } else {
+         SyntaxError(t, "'(' is missing at ");
+         return 0;
+      }
+
+      if (!COND_EXPR(t)) return 0;
+
+      if ((*t)->type == RPAR) {
+         *t = (*t)->next;
+      } else {
+         SyntaxError(t, "')' is missing at ");
+         return 0;
+      }
+
+      if (!BLOCK(t)) return 0;
+   } else {
+      SyntaxError(t, "Expected 'elseif' at ");
+      return 0;
+   }
+   return 1;
+}
+
+int ELSE_EXPR(TOKEN **t) {
+   if ((*t)->type == ELSEEXPR) {
+      *t = (*t)->next;
+      if (!BLOCK(t)) return 0;
+   } else {
+      SyntaxError(t, "Expected 'else' at ");
+      return 0;
+   }
+
+   return 1;
+}
+
+int IF_EXPR(TOKEN **t) {
+   if ((*t)->type == IFEXPR) {
+      *t = (*t)->next;
+
+      if ((*t)->type == LPAR) {
+         *t = (*t)->next;
+      } else {
+         SyntaxError(t, "'(' is missing at ");
+         return 0;
+      }
+
+      if (!COND_EXPR(t)) return 0;
+
+      if ((*t)->type == RPAR) {
+         *t = (*t)->next;
+      } else {
+         SyntaxError(t, "')' is missing at ");
+         return 0;
+      }
+
+      if (!BLOCK(t)) return 0;
+
+      while ((*t)->text != NULL && (*t)->type != ELSEEXPR) {
+         if (!ELSEIF_EXPR(t)) return 0;
+      }
+
+      if ((*t)->next != NULL) {
+         if (!ELSE_EXPR(t)) return 0;
+      }
+   } else {
+      SyntaxError(t, "Expected 'if' at ");
+      return 0;
+   }
+
+   return 1;
+}
+
+int StartParser(TOKEN *token, char* buffer)
+{
+   TOKEN *token_iter = token;
+
+   if (!IF_EXPR(&token_iter)) {
+      VerboseError(token_iter, buffer);
+      return 0;
+   }
+
+   return 1;
 }
 
 int main(int argc, char **argv)
 {
-	char *file_name = (char*) malloc(sizeof(char)*256);
+   char *file_name = (char*) malloc(sizeof(char)*256);
 
 	if (argc > 1)
 	{
@@ -323,7 +580,8 @@ int main(int argc, char **argv)
       return 0;
    }
 
-   TOKEN* token = StartTokenize(buffer, lc); 
+   TOKEN* token_root = StartTokenize(buffer, lc); 
+   TOKEN* token = token_root;
 
    if (token == NULL) 
    {
@@ -332,21 +590,21 @@ int main(int argc, char **argv)
    }
 
 #ifdef VERBOSE 
+      TOKEN* walk = token_root;
       printf("TOKEN\tLINE\tBEGIN\tEND\tTYPE\n--------------------------------------------\n");
-      while (token != NULL && token->next != NULL) {
-         if (token->type == NEWLINE) {
-            printf("\\n");
-         } else if (token->type == SPACE) {
-            printf("''");
-         } else {
-            printf("%s", token->text);
-         }
-         printf("\t%d\t%d\t%d\t%s\n", token->lineno, token->begin_colno_offset, token->end_colno_offset, GetTokenTypeName(token->type));
-         token = token->next;
+      while (walk != NULL && walk->next != NULL) {
+         printf("%s\t%d\t%d\t%d\t%s\n", walk->text, walk->lineno, walk->begin_colno_offset, walk->end_colno_offset, GetTokenTypeName(walk->type));
+         walk= walk->next;
       }
 #endif
 
-   StartParser(token);
+   int parserResult = StartParser(token, buffer);
+
+   if (!parserResult) {
+      printf("FAILED: Parser\n");
+   } else {
+      printf("SUCCESS: Parser\n");
+   }
 
    fclose(file);
    return EXIT_SUCCESS;
