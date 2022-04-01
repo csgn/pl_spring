@@ -297,7 +297,7 @@ TOKEN* StartTokenize(char *buffer, int size)
 
 void SyntaxError(TOKEN** t, char *msg) 
 {
-   printf("%s <%d:%d>\n", msg, (*t)->lineno, (*t)->begin_colno_offset, (*t)->end_colno_offset);
+   printf("%s <%d:%d>\n", msg, (*t)->lineno, (*t)->end_colno_offset-(*t)->begin_colno_offset);
 }
 
 void VerboseError(TOKEN* t, char *buffer)
@@ -559,7 +559,6 @@ int main(int argc, char **argv)
    }
 
    FILE *file;
-   int nread;
    char *buffer = malloc(sizeof(char)*CHUNK);
 
    if (buffer == NULL) {
