@@ -382,6 +382,7 @@ int WORD_EXPR(TOKEN **t) {
       case MINUS:
       case STAR:
       case SLASH:
+         *t = (*t)->next;
          if (ID_EXPR(*t)) {
             *t = (*t)->next;
          } else {
@@ -518,8 +519,13 @@ int IF_EXPR(TOKEN **t) {
          if (!ELSEIF_EXPR(t)) return 0;
       }
 
-      if ((*t)->next != NULL) {
+      if ((*t)->next != NULL && (*t)) {
          if (!ELSE_EXPR(t)) return 0;
+      }
+
+      if ((*t)->next != NULL) {
+         SyntaxError(t, "unrecognized identifier at ");
+         return 0;
       }
    } else {
       SyntaxError(t, "Expected 'if' at ");
@@ -559,7 +565,7 @@ int main(int argc, char **argv)
    }
 
    FILE *file;
-   char *buffer = malloc(sizeof(char)*CHUNK);
+   char buffer[CHUNK];
 
    if (buffer == NULL) {
       printf("MALLOC FAILURE");
@@ -575,7 +581,6 @@ int main(int argc, char **argv)
 
    if (strlen(buffer) == 0)
    {
-      free(buffer);
       return 0;
    }
 
@@ -602,7 +607,8 @@ int main(int argc, char **argv)
    if (!parserResult) {
       printf("FAILED: Parser\n");
    } else {
-      printf("SUCCESS: Parser\n");
+       printf("%s", buffer);
+      printf("\nSUCCESS: Parser\n");
    }
 
    fclose(file);

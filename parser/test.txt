@@ -1,9 +1,11 @@
 if (A < B) {
-    A = B
-} elseif (A > 5) {
-    C = D
-} elseif (C < 2) {
-    D = 2
+ A = A/2
+} elseif(A>=B) {
+    A = B+2
+} elseif(A > b) {
+    A = B*2
+} elseif (B < 2) {
+    C = D*2
 } else {
     D = 2
 }
