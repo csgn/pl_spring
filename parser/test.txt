@@ -1,11 +1,7 @@
-if (A < B) {
- A = A/2
-} elseif(A>=B) {
-    A = B+2
-} elseif(A > b) {
-    A = B*2
-} elseif (B < 2) {
-    C = D*2
+if(A<B) {
+  A = 22 + 2
+} elseif(A==2) {
+  A = B
 } else {
-    D = 2
+  B = 2
 }

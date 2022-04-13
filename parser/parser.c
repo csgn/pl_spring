@@ -234,8 +234,9 @@ TOKEN* StartTokenize(char *buffer, int size)
 
    char current_char;
 
-   char *text = (char*) malloc(sizeof(char)*256); 
-
+   char *text = (char*) malloc(sizeof(char)*256);
+   memset(text, 0, sizeof(char)*256);
+   
    TOKEN *token_root = (TOKEN*) malloc(sizeof(TOKEN));
    TOKEN *token_iter = token_root;
 
@@ -334,8 +335,9 @@ void VerboseError(TOKEN* t, char *buffer)
 int DIGIT_EXPR(TOKEN *t) {
    if (t->type != NUMBER)
       return 0;
-
-   for (int i = 0; i < strlen(t->text); i++) {
+	
+	int i;
+   for (i = 0; i < strlen(t->text); i++) {
       if (t->text[i] < 48 && t->text[i] > 57)
          return 0;
    }
@@ -494,6 +496,7 @@ int ELSE_EXPR(TOKEN **t) {
 }
 
 int IF_EXPR(TOKEN **t) {
+	
    if ((*t)->type == IFEXPR) {
       *t = (*t)->next;
 
@@ -576,7 +579,7 @@ int main(int argc, char **argv)
    int lc = 0;
    char line;
 
-   while ((line = fgetc(file)) != EOF) 
+   while ((line = getc(file)) != EOF) 
       buffer[lc++] = line;
 
    if (strlen(buffer) == 0)
@@ -592,16 +595,7 @@ int main(int argc, char **argv)
       printf("FAILED: Tokenizer\n");
       exit(EXIT_FAILURE);
    }
-
-#ifdef VERBOSE 
-      TOKEN* walk = token_root;
-      printf("TOKEN\tLINE\tBEGIN\tEND\tTYPE\n--------------------------------------------\n");
-      while (walk != NULL && walk->next != NULL) {
-         printf("%s\t%d\t%d\t%d\t%s\n", walk->text, walk->lineno, walk->begin_colno_offset, walk->end_colno_offset, GetTokenTypeName(walk->type));
-         walk= walk->next;
-      }
-#endif
-
+	
    int parserResult = StartParser(token, buffer);
 
    if (!parserResult) {
@@ -610,6 +604,7 @@ int main(int argc, char **argv)
        printf("%s", buffer);
       printf("\nSUCCESS: Parser\n");
    }
+
 
    fclose(file);
    return EXIT_SUCCESS;
