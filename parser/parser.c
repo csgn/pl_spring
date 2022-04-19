@@ -1,3 +1,65 @@
+/* EXAMPLE 1
+INPUT:
+	if(A<B) {
+	  A = 22 + 2
+	} elseif(A==2) {
+	  A = B
+	} else {
+	  B = 2
+	}
+
+
+OUTPUT:
+	if(A<B) {
+	  A = 22 + 2
+	} elseif(A==2) {
+	  A = B
+	} else {
+	  B = 2
+	}
+	SUCCESS: Parser
+
+*/
+
+/* EXAMPLE 2
+INPUT:
+	if(A<B) {
+	  A = 22 + 2
+	} elseif(A==2) {
+	  A = B
+	} else {
+	  B = 2
+	}
+
+OUTPUT:
+	Expected 'elseif' at  <5:4>
+	if(A<B) {
+	  A = 22 + 2
+	} elseif(A==2) {
+	  A = B
+	} els {
+	^^^^^^^
+	FAILED: Parser
+*/
+
+/* EXAMPLE 3
+INPUT:
+	if(G<B) {
+	  ABCDEF123 = 22 + 2
+	} elseif(AB123==2) {
+	  A = B
+	} else {
+	  B = 2
+	}
+
+OUTPUT: G, bizim gramerimizde olmadigi icin hata verir.
+	unrecognized identifier at  <1:1>
+	if(G<B) {
+	^^^^^^
+	FAILED: Parser
+
+*/
+
 /*
   <if-expr> : if (<cond>) 
                 <word>
@@ -7,7 +69,7 @@
               [else <word>]
  
   <cond> : <id> <op> <id>
-  <id> : a | b | c | d | e | f | <id> | <number>
+  <id> : A | B | C | D | E | F | <id> | <number>
   <op> : > | < | <= | >= | > | ==
   <word> : <id> = <id> + <id>
           |<id> = <id> - <id>
@@ -96,8 +158,10 @@ int GetType(char chr)
       return NEWLINE;
    }
 
-   if (isalpha(chr) != 0)
-      return IDENTIFIER;
+   if (isalpha(chr) != 0) {
+   	  return IDENTIFIER;
+   }
+    
    else if (isdigit(chr) != 0)
       return NUMBER;
 
@@ -353,8 +417,15 @@ int NUMBER_EXPR(TOKEN *t) {
 }
 
 int ID_EXPR(TOKEN *t) {
-   if (t->type == IDENTIFIER)
-      return 1;
+   if (t->type == IDENTIFIER) {
+   		int i;
+	   for (i = 0; i < strlen(t->text); i++) {
+    		if ((t->text[i] < 65 || t->text[i] > 70) && (t->text[i] < 48 || t->text[i] > 57))
+         		return 0;
+   		}
+   		
+   		return 1;
+   } 
    
    if (!NUMBER_EXPR(t)) return 0;
 
