@@ -1,3 +1,53 @@
+/*	
+	02190201200 - Sergen Cepoglu - 3.sinif 1.Ogretim
+	
+	
+	Cikti sirasiyla register degerlerini gosteriyor. Her bir satirda kod calistirildiktan sonra Register degerleri gosteriliyor.
+	
+	ORNEK:
+		HRK [20], 10  <-- Bellegin 20.adresine 10 decimal degeri yaziliyor.
+		HRK [10], 5		<-- Bellegin 10.adresine 5 decimal degeri yaziliyor.
+		HRK BX, [[20]]	<-- Bellegin 20.adresinde 10 degeri vardi yani bellegin 10.adresindei deger(5) BX registerina yaziliyor
+		DEG BX			<-- BX degerinin degili aliniyor. (5 in degili -6)
+		
+		AX	BX	CX	DX
+		0	0	0	0  			<-- Bellegin 20.adresine 10 decimal degeri yaziliyor.
+		0	0	0	0			<-- Bellegin 10.adresine 5 decimal degeri yaziliyor.
+		0	5	0	0			<-- Bellegin 20.adresinde 10 degeri vardi yani bellegin 10.adresindei deger(5) BX registerina yaziliyor
+		0	-6	0	0			<-- BX degerinin degili aliniyor. (5 in degili -6)	
+		
+case1:
+HRK AX,10
+HRK BX,20
+HRK CX,30
+HRK DX,40
+
+case2:	
+HRK [20],10
+HRK [10],5
+HRK BX,[[20]]
+DEG BX
+
+case3:
+HRK AX,10
+HRK [5],10
+HRK BX,[5]
+
+case4:
+HRK AX,5
+HRK [10],AX
+HRK AX,30
+HRK [5], AX
+HRK BX,[[10]]
+
+case5:
+HRK [20],10
+HRK [10],5
+HRK BX,[[20]]
+DEG BX
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,32 +100,6 @@ enum SourceTypes {
     VM_IMMEDIATE
 };
 
-#define TOSTR(c)                                                  \
-    (HRK        == c ? "HRK"        :                             \
-    (TOP        == c ? "TOP"        :                             \
-    (CRP        == c ? "CRP"        :                             \
-    (CIK        == c ? "CIK"        :                             \
-    (BOL        == c ? "BOL"        :                             \
-    (VE         == c ? "VE"         :                             \
-    (VEYA       == c ? "VEYA"       :                             \
-    (DEG        == c ? "DEG"        :                             \
-    (AX         == c ? "AX"         :                             \
-    (BX         == c ? "BX"         :                             \
-    (CX         == c ? "CX"         :                             \
-    (DX         == c ? "DX"         :                             \
-	(NONE       == c ? "NONE"       :                             \
-	(NUMBER     == c ? "NUMBER"     :                             \
-	(TEXT       == c ? "TEXT"       :                             \
-	(OTHER      == c ? "OTHER"      :                             \
-	(COMMA      == c ? "COMMA"      :                             \
-	(LSQB       == c ? "LSQB"       :                             \
-	(RSQB       == c ? "RSQB"       :                             \
-	(NEWLINE    == c ? "NEWLINE"    :                             \
-	(WHITESPACE == c ? "WHITESPACE" :                             \
-	(ENDMARKER  == c ? "ENDMARKER"  :                             \
-	(OPCODE     == c ? "OPCODE"     :                             \
-	(REGISTER   == c ? "REGISTER"   :                             \
-	(IMMEDIATE  == c ? "IMMEDIATE"  : NULL)))))))))))))))))))))))))
 
 #define ISOPCODE(c)            \
     (  strcmp("HRK",  c) == 0  \
@@ -212,6 +236,7 @@ struct Token* Tokenize(struct Buffer* buffer) {
 	i = -1;
 	charType = NONE;
     tokenText = (char*) malloc(sizeof(char)*256);
+    memset(tokenText, 0, sizeof(tokenText));
 	NextChar(buffer, &i, &charType);
 
 	while (i <= buffer->size) {
@@ -290,10 +315,12 @@ struct BLOCK* GenerateBlocks(struct Token* t) {
         if (t->type == OPCODE) {
             iter->opcode = WHICHOPCODE(t->text);
             t = t->next;
-        } else {
+        } 
+		/*
+		else {
             printf("ERROR: expected an OPCODE\n");
             return NULL;
-        }
+        }*/
 
         while (t->type == WHITESPACE) t = t->next;
 
@@ -308,10 +335,11 @@ struct BLOCK* GenerateBlocks(struct Token* t) {
                 iter->destType = VM_INDIRECT;
 
                 if (t->next->type == RSQB && t->next->next->type == RSQB) t = t->next->next->next;
+                	/*
                 else {
                     printf("ERROR: expected ']'\n");
                     return NULL;
-                }
+                }*/
             } else { // direct
                 t = t->next;
 
@@ -322,28 +350,34 @@ struct BLOCK* GenerateBlocks(struct Token* t) {
                }
 
                if (t->type == RSQB) t = t->next;
+               	/*
                else {
                     printf("ERROR: expected ']'\n");
                     return NULL;
-               }
+               }*/
             }
         } else if (t->type == IMMEDIATE) {
                 iter->src = atoi(t->text);
                 iter->srcType = VM_IMMEDIATE;
                 t = t->next;
-        } else {
+        } 
+		/*
+		else {
             printf("ERROR: expected REGISTER, MEMORY or IMMEDIATE\n");
             return NULL;
-        }
+        }	*/
         
+
 
         if (t->type != NEWLINE && t->type != ENDMARKER) {
             if (t->type == COMMA) {
                  t = t->next;
-            } else {
+            }
+				/*
+			 else {
                 printf("ERROR: expected ','\n");
                 return NULL;
-            }
+            }*/
 
             while (t->type == WHITESPACE) t = t->next;
 
@@ -353,67 +387,87 @@ struct BLOCK* GenerateBlocks(struct Token* t) {
                 t = t->next;
             } else if (t->type == LSQB) {
                 if (t->next->type == LSQB) { // indirect 
-                    if (t->next->type == LSQB) { // indirect 
-                        t = t->next->next; // value
-                        iter->src = atoi(t->text);
-                        iter->srcType = VM_INDIRECT;
+                    t = t->next->next; // value
+                    iter->src = atoi(t->text);
+                    iter->srcType = VM_INDIRECT;
 
-                        if (t->next->type == RSQB && t->next->next->type == RSQB) t = t->next->next->next;
-                        else {
-                            printf("ERROR: expected ']'\n");
-                            return NULL;
-                        }
-                    } else { // direct
-                        t = t->next;
-
-                        if (t->type == IMMEDIATE) {
-                            iter->src = atoi(t->text);
-                            iter->srcType = VM_DIRECT;
-                            t = t->next;
-                        }
-
-                        if (t->type == RSQB) t = t->next;
-                        else { 
-                            printf("ERROR: expected ']'\n");
-                            return NULL;
-                        }
-                    }
+                    if (t->next->type == RSQB && t->next->next->type == RSQB) t = t->next->next->next;
+                    	/*
+                    else {
+                        printf("ERROR: expected ']'\n");
+                        return NULL;
+                    }*/
                 }
+				
+				else { // direct
+                    t = t->next;
+
+                    if (t->type == IMMEDIATE) {
+                        iter->src = atoi(t->text);
+                        iter->srcType = VM_DIRECT;
+                        t = t->next;
+                    }
+
+                    if (t->type == RSQB) t = t->next;
+                    	/*
+                    else { 
+                        printf("ERROR: expected ']'\n");
+                        return NULL;
+                    }*/
+                }
+                
             } else if (t->type == IMMEDIATE) {
                 iter->src = atoi(t->text);
                 iter->srcType = VM_IMMEDIATE;
+
                 t = t->next;
-            } else {
+            } 
+				/*
+			else {
                 printf("ERROR: expected REGISTER, MEMORY or IMMEDIATE\n");
                 return NULL;
-            }
+            }*/
         }
 
         if (t->type == NEWLINE) {
             t = t->next;
             iter->next = (struct BLOCK*) malloc(sizeof(struct BLOCK));
             iter = iter->next;
-        } else {
+        } 
+			/*
+		else {
             printf("ERROR: expected a NEWLINE \n");
             return NULL;
-        }
+        }*/
     }
 
-    free(iter);
+    //free(iter);
 
     return root;
 }
 
 
 int StartVM(struct BLOCK* block) {
-    int REGISTERS[4] = {0};
-    int MEMORY[500] = {0};
+    int REGISTERS[4];
+    int MEMORY[500];
+    
+    int i = 0;
+    for (i = 0; i < 500; i++) {
+    	MEMORY[i] = 0;
+	}
+	
+	for (i = 0; i < 4; i++) {
+		REGISTERS[i] = 0;
+	}
 
     int* src;
     int* dest;
 
     printf("AX\tBX\tCX\tDX\n");
     while (block) {
+    	//printf("OPCODE: %d\tSRC: %d\tSRC TYPE: %d\tDEST: %d\tDEST TYPE: %d\n", block->opcode, block->src, block->srcType, block->dest, block->destType);
+    	
+
         switch (block->srcType) {
         case VM_REGISTER:
             src = &REGISTERS[block->src];
@@ -422,9 +476,11 @@ int StartVM(struct BLOCK* block) {
             src = &MEMORY[block->src];
             break;
         case VM_INDIRECT:
+        	
             src = &MEMORY[MEMORY[block->src]];
             break;
         case VM_IMMEDIATE:
+        	
             src = &block->src;
             break;
         }
@@ -443,6 +499,7 @@ int StartVM(struct BLOCK* block) {
             dest = &block->dest;
             break;
         }
+    
 
         switch (block->opcode)
         {
@@ -472,16 +529,15 @@ int StartVM(struct BLOCK* block) {
             *dest = ~(*dest);
             break;
         }
-
-        printf("%d\t%d\t%d\t%d\n", REGISTERS[0], REGISTERS[1], REGISTERS[2], REGISTERS[3]);
-
+		printf("%d\t%d\t%d\t%d\n", REGISTERS[0], REGISTERS[1], REGISTERS[2], REGISTERS[3]);
+       
         block = block->next;
     }
 
 }
 
 int main(int argc, char** argv) {
-	char* fp = (char*) malloc(sizeof(char)*256);
+	char* fp = (char*) malloc(sizeof(char)*255);
 
 	if (argc == 2 && argv[1] != NULL) {
 		fp = argv[1];
@@ -493,7 +549,8 @@ int main(int argc, char** argv) {
 	struct Buffer* buffer = ReadFile(fp);
     struct Token* token = Tokenize(buffer);
     struct BLOCK* block = GenerateBlocks(token);
-
+    
+   
     StartVM(block);
 
 	return 0;
