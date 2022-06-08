@@ -1,7 +1,5 @@
 /*
 Sergen Cepoglu
-02190201200
-1.Ogretim 3.Sinif
 */
 
 #include <stdio.h>
